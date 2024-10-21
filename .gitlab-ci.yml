@@ -1,0 +1,89 @@
+image: ubuntu:22.04
+
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_NAME: "${ECR_URL}/edtronaut-booking-service"
+
+.install_ssh:
+  before_script:
+    - test -n "$SSH_PRIVATE_KEY" || ( echo "missing variable SSH_PRIVATE_KEY" && exit 1)
+    - test -n "$SSH_HOST_PRODUCTION" || ( echo "missing variable SSH_HOST_PRODUCTION" && exit 1)
+    - test -n "$SSH_HOST_DEVELOPMENT" || ( echo "missing variable SSH_HOST_DEVELOPMENT" && exit 1)
+    - test -n "$ROCKSHIP_REGISTRY_USERNAME" || ( echo "missing variable ROCKSHIP_REGISTRY_USERNAME" && exit 1)
+    - test -n "$ROCKSHIP_REGISTRY_PASSWORD" || ( echo "missing variable ROCKSHIP_REGISTRY_PASSWORD" && exit 1)
+    - test -n "$ROCKSHIP_REGISTRY" || ( echo "missing variable ROCKSHIP_REGISTRY" && exit 1)
+    - apt-get update -qq && apt-get install -qq curl
+    - which ssh-agent || apt-get install -qq openssh-client
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - touch ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - >
+      if [ "$CI_COMMIT_BRANCH" == "master" ]; then
+        export TAG="prod"
+      else
+        export TAG="stg"
+      fi
+
+build:
+  stage: build
+  tags:
+    - builder
+  image:
+    name: gcr.io/kaniko-project/executor:v1.10.0-debug
+    entrypoint: ['']
+  script:
+    - >
+      if [ "$CI_COMMIT_BRANCH" == "master" ]; then
+        export TAG="prod"
+      else
+        export TAG="stg"
+      fi
+    - mkdir -p /kaniko/.docker
+    - echo "{\"credsStore\":\"ecr-login\"}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --image-name-tag-with-digest-file "$IMAGE_NAME:$TAG"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "$IMAGE_NAME:$TAG"
+  only:
+    - dev
+    - master
+
+deploy-staging:
+  extends: .install_ssh
+  stage: deploy
+  script:
+    - ssh $SSH_HOST_DEVELOPMENT "
+      aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin $ECR; 
+      docker pull $IMAGE_NAME:$TAG;
+      docker stop edtronaut-booking-service;
+      docker rm edtronaut-booking-service;
+      docker run -d --name=edtronaut-booking-service --restart=unless-stopped --network=nginx $IMAGE_NAME:$TAG"
+    - ssh $SSH_HOST_DEVELOPMENT "
+      docker container prune -f;
+      docker image prune -af"
+  only:
+    - dev
+
+deploy-production:
+  extends: .install_ssh
+  stage: deploy
+  script:
+    - ssh $SSH_HOST_PRODUCTION "
+      aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin $ECR; 
+      docker pull $IMAGE_NAME:$TAG;
+      docker stop edtronaut-booking-service;
+      docker rm edtronaut-booking-service;
+      docker run -d --name=edtronaut-booking-service --restart=unless-stopped --network=nginx $IMAGE_NAME:$TAG"
+    - ssh $SSH_HOST_PRODUCTION "
+      docker container prune -f;
+      docker image prune -af"
+  only:
+    - master

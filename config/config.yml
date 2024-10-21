@@ -1,0 +1,40 @@
+app:
+  name: "booking-service"
+  version: "1.0.0"
+
+http:
+  port: "8080"
+
+logger:
+  log_level: "debug"
+  rollbar_env: "booking-service"
+
+postgres:
+  pool_max: 2
+  url: "postgresql://rockship:rockship@13.214.174.140:5432/edtronaut_booking_service_dev"
+
+lark_calendar:
+  app_id: "cli_a69e584357b81010"
+  app_secret: "kNqizAGxHxUIYKrxE93ylfWhglyCRGJ1"
+  calendar_id: "feishu.cn_71xfCewbC2b2fWi4toCf8f@group.calendar.feishu.cn"
+  timezone: "Asia/Ho_Chi_Minh"
+  domain: "https://open.larksuite.com/open-apis"
+
+lark_base:
+  app_id: "cli_a69e584357b81010"
+  app_secret: "kNqizAGxHxUIYKrxE93ylfWhglyCRGJ1"
+  domain: "https://open.larksuite.com/open-apis"
+  base_token: "UsNLbAky5avVF6sIEybl7qUDgPd"
+  appoitment_table: "tbl2rAyvehXbAcaU"
+  cancel_table: "tblsE1Q5r5VvtOQl"
+
+edtronaut:
+  domain: "https://stg-api.edtronaut.ai/api"
+
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "https://booking-api.edtronaut.ai/swagger/index.html"
+    - "https://localhost:8080/swagger/index.html"
+    - "https://dev.edtronaut.ai"
+    - "https://edtronaut.ai"

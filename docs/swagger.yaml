@@ -1,0 +1,650 @@
+definitions:
+  model.Appointment:
+    properties:
+      content:
+        type: string
+      detail: {}
+      learner_id:
+        type: string
+      schedule:
+        allOf:
+        - $ref: '#/definitions/model.Schedule'
+        description: Omit from GORM processing
+      schedule_id:
+        type: string
+      week_number:
+        type: integer
+      year:
+        type: integer
+    type: object
+  model.CreateScheduleRequest:
+    properties:
+      mentor_id:
+        type: string
+      start_at:
+        type: string
+    required:
+    - mentor_id
+    - start_at
+    type: object
+  model.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      error:
+        example: message
+        type: string
+    type: object
+  model.Mentor:
+    properties:
+      avatar:
+        type: string
+      career_level:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      phone_number:
+        type: string
+    type: object
+  model.PaginationResponse-model_Appointment:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Appointment'
+        type: array
+      message:
+        type: string
+      paging:
+        $ref: '#/definitions/model.Paging'
+    type: object
+  model.PaginationResponse-model_Schedule:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Schedule'
+        type: array
+      message:
+        type: string
+      paging:
+        $ref: '#/definitions/model.Paging'
+    type: object
+  model.Paging:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      total:
+        type: integer
+    type: object
+  model.Response-array_model_Schedule:
+    properties:
+      code:
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/model.Schedule'
+        type: array
+      message:
+        type: string
+    type: object
+  model.Response-model_Appointment:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/model.Appointment'
+      message:
+        type: string
+    type: object
+  model.Response-model_Mentor:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/model.Mentor'
+      message:
+        type: string
+    type: object
+  model.Response-model_Schedule:
+    properties:
+      code:
+        type: integer
+      data:
+        $ref: '#/definitions/model.Schedule'
+      message:
+        type: string
+    type: object
+  model.Response-string:
+    properties:
+      code:
+        type: integer
+      data:
+        type: string
+      message:
+        type: string
+    type: object
+  model.Schedule:
+    properties:
+      id:
+        type: string
+      interval:
+        description: this field does not store in db
+        properties:
+          from:
+            type: string
+          to:
+            type: string
+        type: object
+      mentor_id:
+        type: string
+      start_at:
+        description: this field does store in db can be used to generate intervals
+          and wday
+        type: string
+      wday:
+        description: this field does not store in db
+        type: string
+    type: object
+  model.ScheduleAppointmentRequest:
+    properties:
+      content:
+        type: string
+      learner_id:
+        type: string
+      schedule_at:
+        type: string
+    required:
+    - learner_id
+    type: object
+info:
+  contact: {}
+paths:
+  /mentor:
+    post:
+      consumes:
+      - application/json
+      description: Create mentor
+      operationId: create-mentor
+      parameters:
+      - description: Mentor
+        in: body
+        name: mentor
+        required: true
+        schema:
+          $ref: '#/definitions/model.Mentor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Mentor'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create mentor
+      tags:
+      - mentor
+    put:
+      consumes:
+      - application/json
+      description: Update mentor
+      operationId: update-mentor
+      parameters:
+      - description: Mentor
+        in: body
+        name: mentor
+        required: true
+        schema:
+          $ref: '#/definitions/model.Mentor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Mentor'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Update mentor
+      tags:
+      - mentor
+  /mentor/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete mentor
+      operationId: delete-mentor
+      parameters:
+      - description: Mentor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-string'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Delete mentor
+      tags:
+      - mentor
+    get:
+      consumes:
+      - application/json
+      description: Get mentor by ID
+      operationId: get-mentor-by-id
+      parameters:
+      - description: Mentor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Mentor'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get mentor by ID
+      tags:
+      - mentor
+  /mentors:
+    get:
+      consumes:
+      - application/json
+      description: Get all mentors
+      operationId: get-all-mentors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Mentor'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all mentors
+      tags:
+      - mentor
+  /schedule:
+    post:
+      consumes:
+      - application/json
+      description: Create schedule
+      operationId: create-schedule
+      parameters:
+      - description: Schedule
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create schedule
+      tags:
+      - schedule
+    put:
+      consumes:
+      - application/json
+      description: Update schedule
+      operationId: update-schedule
+      parameters:
+      - description: Schedule
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/model.Schedule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Update schedule
+      tags:
+      - schedule
+  /schedule/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete schedule
+      operationId: delete-schedule
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-string'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Delete schedule
+      tags:
+      - schedule
+    get:
+      consumes:
+      - application/json
+      description: Get schedule by ID
+      operationId: get-schedule-by-id
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get schedule by ID
+      tags:
+      - schedule
+  /schedule/appointment:
+    post:
+      consumes:
+      - application/json
+      description: Schedule appointment
+      operationId: schedule-appointment
+      parameters:
+      - description: Appointment
+        in: body
+        name: appointment
+        required: true
+        schema:
+          $ref: '#/definitions/model.ScheduleAppointmentRequest'
+      - description: Bearer <token>
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Appointment'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Schedule appointment
+      tags:
+      - Learner
+  /schedule/appointment/{schedule_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Unschedule appointment
+      operationId: unschedule-appointment
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: schedule_id
+        required: true
+        type: string
+      - description: Bearer <token>
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-string'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Unschedule appointment
+      tags:
+      - Learner
+    get:
+      consumes:
+      - application/json
+      description: Get appointment by Schedule ID
+      operationId: get-appointment-by-schedule-id
+      parameters:
+      - description: Schedule ID
+        in: path
+        name: schedule_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-model_Appointment'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get appointment by Schedule ID
+      tags:
+      - schedule
+  /schedules:
+    get:
+      consumes:
+      - application/json
+      description: Get all schedules
+      operationId: get-all-schedules
+      parameters:
+      - default: 2019-01-01 00:00:00+07
+        description: Start time
+        in: query
+        name: from
+        type: string
+      - default: 2222-01-01 00:00:00+07
+        description: End time
+        in: query
+        name: to
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PaginationResponse-model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all schedules
+      tags:
+      - schedule
+  /schedules/appointments:
+    get:
+      consumes:
+      - application/json
+      description: Get many appointments
+      operationId: get-many-appointments
+      parameters:
+      - default: 2019-01-01 00:00:00+07
+        description: Start time
+        in: query
+        name: from
+        type: string
+      - default: 2222-01-01 00:00:00+07
+        description: End time
+        in: query
+        name: to
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.PaginationResponse-model_Appointment'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get many appointments
+      tags:
+      - schedule
+  /schedules/available:
+    get:
+      consumes:
+      - application/json
+      description: Get available schedule
+      operationId: get-available-schedule
+      parameters:
+      - default: 2019-01-01 00:00:00+07
+        description: Start time
+        in: query
+        name: from
+        type: string
+      - default: 2222-01-01 00:00:00+07
+        description: End time
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-array_model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get available schedule
+      tags:
+      - schedule
+  /schedules/learner/{learner_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all schedules by learner ID
+      operationId: get-all-schedules-by-learner-id
+      parameters:
+      - description: Learner ID
+        in: path
+        name: learner_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-array_model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all schedules by learner ID
+      tags:
+      - schedule
+  /schedules/mentor/{mentor_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get all schedules by mentor ID
+      operationId: get-all-schedules-by-mentor-id
+      parameters:
+      - description: Mentor ID
+        in: path
+        name: mentor_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response-array_model_Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all schedules by mentor ID
+      tags:
+      - schedule
+swagger: "2.0"
